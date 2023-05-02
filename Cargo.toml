@@ -1,5 +1,5 @@
 [package]
-name = "k0hax-polypaging"
+name = "polypaging-app"
 version = "0.1.0"
 edition = "2021"
 authors = ["Michael Englehorn <michael@xcelor8.com>"]
