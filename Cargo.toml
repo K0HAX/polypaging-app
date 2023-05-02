@@ -1,0 +1,16 @@
+[package]
+name = "k0hax-polypaging"
+version = "0.1.0"
+edition = "2021"
+authors = ["Michael Englehorn <michael@xcelor8.com>"]
+
+[dependencies]
+clap = { version = "4.2.4", features = ["derive", "env", "unicode", "wrap_help"] }
+clap-verbosity-flag = "2.0.1"
+env_logger = "0.10.0"
+log = "0.4.17"
+tokio = { version = "1.27.0", features = ["full"] }
+polypaging = { path = "../polypaging" }
+
+[profile.release]
+strip = "symbols"
