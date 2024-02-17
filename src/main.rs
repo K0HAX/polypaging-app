@@ -3,6 +3,8 @@ use clap_verbosity_flag::{InfoLevel, Verbosity};
 use env_logger;
 use log;
 use polypaging;
+use std::fs::File;
+use std::io::BufReader;
 use std::{io, process};
 
 /*
@@ -18,11 +20,12 @@ async fn main() -> io::Result<()> {
     builder.filter_level(args.verbose.log_level_filter()).init();
 
     log::info!("Loading file: {}", args.filename);
-    let contents: polypaging::FileBytes = polypaging::FileBytes::from_file(&args.filename)
-        .unwrap_or_else(|err| {
-            println!("Problem reading file: {err}");
-            process::exit(1);
-        });
+
+    let f = File::open(&args.filename).unwrap_or_else(|err| {
+        println!("Problem reading file: {err}");
+        process::exit(1);
+    });
+    let mut file_handle = BufReader::new(f);
 
     let codec = match args.codec {
         Some(polypaging::CodecFlag::G711u) => polypaging::CodecFlag::G711u,
@@ -34,17 +37,20 @@ async fn main() -> io::Result<()> {
     };
 
     match args.mode {
-        ModeSelect::Print => polypaging::do_print(
-            &contents,
-            args.callerid_name.as_str(),
+        ModeSelect::Print => polypaging::do_print_stream(
+            &mut file_handle,
+            args.callerid_name,
             codec,
             args.channel_number,
         ),
-        ModeSelect::Transmit => {
-            polypaging::do_transmit(contents, args.callerid_name, codec, args.channel_number)
-                .await
-                .unwrap()
-        }
+        ModeSelect::Transmit => polypaging::do_transmit_stream(
+            &mut file_handle,
+            args.callerid_name,
+            codec,
+            args.channel_number,
+        )
+        .await
+        .unwrap(),
     };
 
     Ok(())
@@ -59,7 +65,20 @@ async fn main() -> io::Result<()> {
 /// g711µ or g722 file, and sends it to multicast address
 /// 224.0.1.116:5000 to page Poly phones.
 ///
-/// ©2023 Michael Englehorn
+/// Copyright © 2023-2024 Michael Englehorn
+///
+/// This program is free software: you can redistribute it and/or modify
+/// it under the terms of the GNU General Public License as published by
+/// the Free Software Foundation, either version 3 of the License, or
+/// (at your option) any later version.
+///
+/// This program is distributed in the hope that it will be useful,
+/// but WITHOUT ANY WARRANTY; without even the implied warranty of
+/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+/// GNU General Public License for more details.
+///
+/// You should have received a copy of the GNU General Public License
+/// along with this program.  If not, see <https://www.gnu.org/licenses/>.
 struct Config {
     /// Filename to send
     #[arg(short, long)]
