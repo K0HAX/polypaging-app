@@ -1,6 +1,6 @@
 [package]
 name = "polypaging-app"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Michael Englehorn <michael@xcelor8.com>"]
 
@@ -10,7 +10,7 @@ clap-verbosity-flag = "2.0.1"
 env_logger = "0.10.0"
 log = "0.4.17"
 tokio = { version = "1.27.0", features = ["full"] }
-polypaging = { git = "https://github.com/K0HAX/polypaging.git" }
+polypaging = { path = "../polypaging" }
 
 [profile.release]
 strip = "symbols"

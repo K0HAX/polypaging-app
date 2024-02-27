@@ -28,8 +28,8 @@ async fn main() -> io::Result<()> {
     let mut file_handle = BufReader::new(f);
 
     let codec = match args.codec {
-        Some(polypaging::CodecFlag::G711u) => polypaging::CodecFlag::G711u,
-        Some(polypaging::CodecFlag::G722) => polypaging::CodecFlag::G722,
+        Some(polypaging::rtpcodec::CodecFlag::G711u) => polypaging::rtpcodec::CodecFlag::G711u,
+        Some(polypaging::rtpcodec::CodecFlag::G722) => polypaging::rtpcodec::CodecFlag::G722,
         None => {
             println!("Invalid codec!");
             process::exit(1);
@@ -90,7 +90,7 @@ struct Config {
 
     /// Codec Selection
     #[arg(short, long, value_enum, default_value = "g722")]
-    codec: Option<polypaging::CodecFlag>,
+    codec: Option<polypaging::rtpcodec::CodecFlag>,
 
     /// Channel Number
     ///
