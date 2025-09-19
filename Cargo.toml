@@ -11,6 +11,16 @@ env_logger = "0.10.0"
 log = "0.4.17"
 tokio = { version = "1.27.0", features = ["full"] }
 polypaging = { path = "../polypaging" }
+indicatif = { version = "0.17.9", features = ["unicode-width", "tokio"] }
+either = "1.13.0"
 
 [profile.release]
+opt-level = "s"
+debug = "full"
+split-debuginfo = "packed"
 strip = "symbols"
+target-cpu = "native"
+tune-cpu = "native"
+overflow-checks = true
+lto = "fat"
+panic = "unwind"

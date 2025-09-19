@@ -1,8 +1,7 @@
 use clap::{Parser, ValueEnum};
 use clap_verbosity_flag::{InfoLevel, Verbosity};
-use env_logger;
-use log;
-use polypaging;
+use indicatif::{ProgressBar, ProgressBarIter, ProgressStyle, ProgressFinish};
+use either::*;
 use std::fs::File;
 use std::io::BufReader;
 use std::{io, process};
@@ -25,7 +24,18 @@ async fn main() -> io::Result<()> {
         println!("Problem reading file: {err}");
         process::exit(1);
     });
-    let mut file_handle = BufReader::new(f);
+
+    let mut file_handle: Either<BufReader<std::fs::File>, BufReader<ProgressBarIter<std::fs::File>>> = match args.progress_select {
+        ProgressSelect::Normal => {
+            let pb = ProgressBar::new(f.metadata()?.len()).with_finish(ProgressFinish::AndLeave);
+            pb.set_style(ProgressStyle::with_template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {decimal_bytes}/{decimal_total_bytes}").unwrap());
+            pb.tick();
+            either::Right(BufReader::new(pb.wrap_read(f)))
+        },
+        ProgressSelect::Silent => {
+            either::Left(BufReader::new(f))
+        }
+    };
 
     let codec = match args.codec {
         Some(polypaging::rtpcodec::CodecFlag::G711u) => polypaging::rtpcodec::CodecFlag::G711u,
@@ -106,6 +116,19 @@ struct Config {
     /// Mode
     #[arg(short, long, value_enum, default_value = "transmit")]
     mode: ModeSelect,
+
+    /// Progress bar select
+    #[arg(short, long, value_enum, default_value = "normal")]
+    progress_select: ProgressSelect,
+}
+
+#[derive(Clone, Debug, ValueEnum)]
+enum ProgressSelect {
+    /// Normal
+    Normal,
+
+    /// Silent
+    Silent,
 }
 
 #[derive(Clone, Debug, ValueEnum)]
@@ -118,6 +141,7 @@ enum ModeSelect {
 }
 
 // Vec<u8> //
+/*
 struct PrintableU8Vec(Vec<u8>);
 
 impl std::fmt::UpperHex for PrintableU8Vec {
@@ -131,3 +155,4 @@ impl std::fmt::UpperHex for PrintableU8Vec {
         write!(f, "{}", fmt_string)
     }
 }
+*/
